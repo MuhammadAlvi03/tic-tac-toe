@@ -3,24 +3,24 @@ function Cell() {
 
     const addMarker = (marker) => {
         value = marker;
-    }
+    };
 
     const getValue = () => value;
 
     return {
         addMarker,
         getValue,
-    }
+    };
 }
 
-const Gameboard = (function() {
+const Gameboard = (function () {
     const rows = 3;
     const cols = 3;
     const board = [];
- 
-    for (let i=0; i < rows; i++) {
+
+    for (let i = 0; i < rows; i++) {
         board[i] = [];
-        for(let j=0; j < cols; j++) {
+        for (let j = 0; j < cols; j++) {
             board[i].push(Cell());
         }
     }
@@ -28,40 +28,45 @@ const Gameboard = (function() {
     const getBoard = () => board;
 
     const printBoard = () => {
-        const boardValues = board.map((row) => row.map((cell) => cell.getValue()));
+        const boardValues = board.map((row) =>
+            row.map((cell) => cell.getValue())
+        );
         console.table(boardValues);
-    }
+    };
 
     const placeMarker = (row, column, marker) => {
         board[row][column].addMarker(marker);
-    }
+    };
 
     return {
         getBoard,
         printBoard,
-        placeMarker
-    }
+        placeMarker,
+    };
 })();
 
-
-const GameController = (function(playerOneName = 'Player One', playerTwoName = 'Player Two') {
+const GameController = (function (
+    playerOneName = "Player One",
+    playerTwoName = "Player Two"
+) {
     const players = [
-        { name: playerOneName, marker: 'X'},
-        { name: playerTwoName, marker: 'O'}
+        { name: playerOneName, marker: "X" },
+        { name: playerTwoName, marker: "O" },
     ];
+
     let currentPlayer = players[0];
 
     const switchCurrentPlayerTurn = () => {
         currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
-    }
+    };
 
     const getCurrentPlayerTurn = () => currentPlayer;
-    
+
     let rowX = new Array(3).fill(0);
     let colX = new Array(3).fill(0);
     let diagX = 0;
     let antiDiagX = 0;
-    
+
     let rowO = new Array(3).fill(0);
     let colO = new Array(3).fill(0);
     let diagO = 0;
@@ -72,14 +77,13 @@ const GameController = (function(playerOneName = 'Player One', playerTwoName = '
             rowX[row]++;
             colX[column]++;
             if (row === column) diagX++;
-            if (row + column === 2) antiDiagX++;
+            if (parseInt(row) + parseInt(column) === 2) antiDiagX++;
         } else {
             rowO[row]++;
-            colO[row]++;
+            colO[column]++;
             if (row === column) diagO++;
-            if (row + column === 2) antiDiagO++;
+            if (parseInt(row) + parseInt(column) == 2) antiDiagO++;
         }
-
         if (
             rowX[row] === 3 ||
             colX[column] === 3 ||
@@ -98,26 +102,66 @@ const GameController = (function(playerOneName = 'Player One', playerTwoName = '
 
     let gameWon = false;
 
+    const getGameWon = () => gameWon;
+
     const playRound = (row, column) => {
         let board = Gameboard.getBoard();
         if (board[row][column].getValue() === null && gameWon === false) {
             Gameboard.placeMarker(row, column, getCurrentPlayerTurn().marker);
             Gameboard.printBoard();
             if (checkWin(row, column) === true) {
-                console.log(`${getCurrentPlayerTurn().marker} won`)
+                console.log(`${getCurrentPlayerTurn().marker} won`);
                 gameWon = true;
             }
-            switchCurrentPlayerTurn();
+            if (!gameWon) switchCurrentPlayerTurn();
         }
-    }
-
+    };
 
     return {
         playRound,
         getCurrentPlayerTurn,
-    }
-
+        getGameWon
+    };
 })();
 
-//play round function
-// take current player, and marker, placemarker with currentplayer marker, then switch playerturn
+// make this work
+const displayController = (function () {
+    const game = GameController;
+
+    const board = Gameboard.getBoard();
+
+    const infoDisplay = document.querySelector('.game-info');
+
+    const boardDisplay = document.querySelector(".board");
+    const updateCellDisplay = () => {
+        boardDisplay.textContent = "";
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
+                const cellDisplay = document.createElement("button");
+                cellDisplay.className = "cell";
+                cellDisplay.dataset.row = [row];
+                cellDisplay.dataset.column = [col];
+                cellDisplay.textContent = board[row][col].getValue();
+                boardDisplay.appendChild(cellDisplay);
+            }
+        }
+    };
+
+    function clickHandlerBoard(event) {
+        const row = event.target.dataset.row;
+        const col = event.target.dataset.column;
+        game.playRound(row, col);
+        updateCellDisplay();
+        if (game.getGameWon()) {
+            infoDisplay.textContent = `${game.getCurrentPlayerTurn().name} won!`
+        } else {
+            infoDisplay.textContent = `${game.getCurrentPlayerTurn().name}'s turn`
+        }
+    }
+    boardDisplay.addEventListener('click', clickHandlerBoard);
+    return {
+        updateCellDisplay,
+    };
+})();
+
+displayController.updateCellDisplay();
