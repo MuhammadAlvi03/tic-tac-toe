@@ -43,7 +43,7 @@ const Gameboard = (function () {
     };
     
     initBoard();
-    
+
     return {
         getBoard,
         printBoard,
@@ -153,7 +153,6 @@ const GameController = (function (
         let board = Gameboard.getBoard();
         if (board[row][column].getValue() === null && gameWon === false) {
             Gameboard.placeMarker(row, column, getCurrentPlayerTurn().marker);
-            Gameboard.printBoard();
             if (checkWin(row, column) === true) {
                 gameWon = true;
             }
@@ -195,6 +194,10 @@ const displayController = (function () {
     };
 
     function clickHandlerBoard(event) {
+
+        const [playerOneName, playerTwoName] = getPlayerInputs();
+        GameController.changePlayerNames(playerOneName, playerTwoName);
+
         const row = event.target.dataset.row;
         const col = event.target.dataset.column;
         game.playRound(row, col);
